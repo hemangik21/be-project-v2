@@ -530,27 +530,36 @@ async function submitAnswer() {
  * Calculate knowledge score (simplified)
  */
 function calculateKnowledgeScore(answer, question) {
-    let score = 0.5; // Base score
-    
-    // Check answer length
-    const wordCount = answer.split(/\s+/).length;
-    if (wordCount >= 50) score += 0.2;
-    else if (wordCount >= 30) score += 0.1;
-    
-    // Check for topic keywords
+    const words = answer.trim().split(/\s+/);
+    const wordCount = words.length;
+
+    // ---------------------------
+    // HARD PENALTY FOR SHORT ANSWERS
+    // ---------------------------
+    if (wordCount <= 2) return 0.1;
+    if (wordCount <= 5) return 0.3;
+
+    let score = 0.4; // lower base (not 0.5)
+
+    // Length bonus
+    if (wordCount >= 50) score += 0.3;
+    else if (wordCount >= 30) score += 0.2;
+    else if (wordCount >= 15) score += 0.1;
+
+    // Keyword matching
     const answerLower = answer.toLowerCase();
     let keywordMatches = 0;
-    
-    question.topics.forEach(topic => {
+
+    (question.topics || []).forEach(topic => {
         if (answerLower.includes(topic.toLowerCase())) {
             keywordMatches++;
         }
     });
-    
+
     if (keywordMatches > 0) {
         score += Math.min(0.3, keywordMatches * 0.1);
     }
-    
+
     return Math.min(1.0, score);
 }
 
@@ -558,26 +567,32 @@ function calculateKnowledgeScore(answer, question) {
  * Calculate speech score (simplified - based on text quality)
  */
 function calculateSpeechScore(answer) {
-    let score = 0.6; // Base score
-    
-    // Check for filler words
+    const words = answer.trim().split(/\s+/);
+    const wordCount = words.length;
+
+    // ---------------------------
+    // HARD PENALTY
+    // ---------------------------
+    if (wordCount <= 2) return 0.2;
+    if (wordCount <= 5) return 0.4;
+
+    let score = 0.5;
+
     const fillerWords = ['umm', 'uh', 'like', 'you know', 'basically'];
     const answerLower = answer.toLowerCase();
+
     let fillerCount = 0;
-    
     fillerWords.forEach(filler => {
-        const regex = new RegExp(filler, 'gi');
-        const matches = answerLower.match(regex);
+        const matches = answerLower.match(new RegExp(filler, 'gi'));
         if (matches) fillerCount += matches.length;
     });
-    
+
     if (fillerCount === 0) score += 0.2;
     else if (fillerCount <= 2) score += 0.1;
-    
-    // Check sentence structure (has periods)
+
     const sentences = answer.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    if (sentences.length >= 3) score += 0.2;
-    
+    if (sentences.length >= 2) score += 0.2;
+
     return Math.min(1.0, score);
 }
 

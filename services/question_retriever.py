@@ -18,6 +18,7 @@ class QuestionRetriever:
     
     def _load_questions(self, force_reload: bool = False):
         """Load all questions into memory (cache)"""
+        ##load questions according to profile vector of candidate and according to the label.
         if self._question_cache is None or force_reload:
             print("🔄 Loading questions from database...")
             self._question_cache = self.db.get_all_questions()
@@ -44,7 +45,14 @@ class QuestionRetriever:
         print(f"🔄 Retrieving questions for candidate: {candidate_id}")
         
         # Check cache first
+        """
+        Assumption: The questions for unique candidate_id are fetched amd stored in cache. 
+        During each interview for the same candidate, this cache is used. 
+        This logic needs to be changed because ques shouldn't be repeated as it is in the 
+        next interviews of that candidate
+        """
         cached = self.db.get_cached_retrieval(candidate_id)
+        ## Try removing this logic and check if the questions are overwritten
         if cached:
             print("✅ Using cached results")
             question_ids = cached['question_ids'][:max_questions]
@@ -69,6 +77,12 @@ class QuestionRetriever:
         self._load_questions()
         
         # Filter by difficulty and category if specified
+        """
+        Firstly, the filtering will be applied in the datatset itself to load part of 
+        dataset in the cache (instead of entire dataset), and then load_questions will be 
+        called to find most similar questions present in the cache
+        """
+        
         questions = self._question_cache
         if difficulty:
             questions = [q for q in questions if q['difficulty'] == difficulty]

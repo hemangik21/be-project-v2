@@ -7,37 +7,43 @@
  */
 async function processResume() {
     const resumeText = document.getElementById('resume-text').value.trim();
-    
-    if (!resumeText) {
-        showToast('Please paste your resume text', 'error');
+    const resumeFile = document.getElementById('resume-file').files[0];
+
+    if (!resumeText && !resumeFile) {
+        showToast('Please upload a PDF or paste resume text', 'error');
         return;
     }
-    
-    // Show processing status
+
+    // UI updates
     document.getElementById('processing-status').style.display = 'block';
     document.getElementById('resume-results').style.display = 'none';
     document.getElementById('status-message').textContent = 'Processing your resume...';
-    
+
     try {
-        // Call full resume processing API
-        const result = await api.fullResumeProcessing(resumeText);
-        
+        let result;
+
+        if (resumeFile) {
+            // ✅ PDF upload flow
+            result = await api.fullResumeProcessingPDF(resumeFile);
+        } else {
+            // fallback text flow
+            result = await api.fullResumeProcessing(resumeText);
+        }
+
         if (result.success) {
-            // Save candidate ID
             appState.currentCandidateId = result.candidate_id;
             saveState();
-            
-            // Update status
+
             document.getElementById('status-message').textContent = 'Profile created successfully!';
-            
-            // Show results after delay
+
             setTimeout(() => {
                 document.getElementById('processing-status').style.display = 'none';
                 displayResumeResults(result);
             }, 1000);
-            
+
             showToast('Profile created successfully!', 'success');
         }
+
     } catch (error) {
         document.getElementById('processing-status').style.display = 'none';
         showToast('Error processing resume: ' + error.message, 'error');

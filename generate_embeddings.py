@@ -34,3 +34,5 @@ conn.commit()
 conn.close()
 
 print("✅ Embeddings successfully generated and stored.")
+
+# to generate embeddings for questions, run: python generate_embeddings.py

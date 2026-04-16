@@ -89,17 +89,29 @@ def create_routes():
     def full_resume_processing():
         """Complete pipeline: parse + create profile"""
         try:
-            data = request.get_json()
-            
-            # Step 1: Parse resume
-            if 'resume_text' in data:
+            # ✅ CASE 1: PDF upload
+            if 'pdf_file' in request.files:
+                pdf_file = request.files['pdf_file']
+                parsed = resume_parser.parse_resume(pdf_file=pdf_file)
+
+                candidate_id = request.form.get('candidate_id')
+
+            # ✅ CASE 2: JSON text
+            elif request.is_json:
+                data = request.get_json()
+
+                if 'resume_text' not in data:
+                    return jsonify({'error': 'resume_text required'}), 400
+
                 parsed = resume_parser.parse_resume(resume_text=data['resume_text'])
+                candidate_id = data.get('candidate_id')
+
             else:
-                return jsonify({'error': 'resume_text required'}), 400
-            
-            # Step 2: Create profile
-            profile = profile_creator.create_profile(parsed, data.get('candidate_id'))
-            
+                return jsonify({'error': 'No resume provided'}), 400
+
+            # Create profile
+            profile = profile_creator.create_profile(parsed, candidate_id)
+
             return jsonify({
                 'success': True,
                 'candidate_id': profile['candidate_id'],

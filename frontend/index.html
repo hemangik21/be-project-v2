@@ -82,9 +82,16 @@
                         <div class="upload-icon">
                             <i class="fas fa-cloud-upload-alt"></i>
                         </div>
-                        <h3>Paste Resume Text</h3>
+                        <h3>Upload Resume (PDF)</h3>
+
+                        <!-- NEW: File input -->
+                        <input type="file" id="resume-file" accept=".pdf" class="form-input">
+
+                        <p style="margin: 10px 0;">OR</p>
+
                         <textarea id="resume-text" class="resume-textarea" 
                                   placeholder="Paste your resume text here...&#10;&#10;Include:&#10;- Skills&#10;- Work Experience&#10;- Projects&#10;- Education"></textarea>
+                        
                         <button class="btn btn-primary" onclick="processResume()">
                             <i class="fas fa-magic"></i> Process Resume
                         </button>
