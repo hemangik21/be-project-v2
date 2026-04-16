@@ -224,6 +224,14 @@ class APIService {
     async healthCheck() {
         return this.request('/health');
     }
+
+    async getEmbedding(text) {
+    return this.request('/get-embedding', {
+        method: 'POST',
+        body: JSON.stringify({ text })
+        });
+    }
+
 }
 
 // Create global API instance
