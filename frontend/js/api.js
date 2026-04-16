@@ -70,6 +70,34 @@ class APIService {
             })
         });
     }
+
+    async fullResumeProcessingPDF(file, candidateId = null) {
+        try {
+            const formData = new FormData();
+            formData.append('pdf_file', file);
+
+            if (candidateId) {
+                formData.append('candidate_id', candidateId);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/full-resume-processing`, {
+                method: 'POST',
+                body: formData   // ❗ no JSON header
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Request failed');
+            }
+
+            return data;
+
+        } catch (error) {
+            console.error('API Error:', error);
+            throw error;
+        }
+    }
     
     // ==================== PERSON B APIs ====================
     
