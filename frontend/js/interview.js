@@ -493,7 +493,7 @@ async function submitAnswer() {
     
     try {
         // Simulate scoring (in real app, this would be done by backend)
-        const knowledgeScore = calculateKnowledgeScore(answerText, question);
+        const knowledgeScore = await calculateKnowledgeScore(answerText, question);
         const speechScore = calculateSpeechScore(answerText);
         
         // Record response
@@ -529,55 +529,62 @@ async function submitAnswer() {
 /**
  * Calculate knowledge score (simplified)
  */
-function calculateKnowledgeScore(answer, question) {
-    let score = 0.5; // Base score
-    
-    // Check answer length
-    const wordCount = answer.split(/\s+/).length;
-    if (wordCount >= 50) score += 0.2;
-    else if (wordCount >= 30) score += 0.1;
-    
-    // Check for topic keywords
-    const answerLower = answer.toLowerCase();
-    let keywordMatches = 0;
-    
-    question.topics.forEach(topic => {
-        if (answerLower.includes(topic.toLowerCase())) {
-            keywordMatches++;
-        }
-    });
-    
-    if (keywordMatches > 0) {
-        score += Math.min(0.3, keywordMatches * 0.1);
+async function calculateKnowledgeScore(answer, question) {
+
+    // 1. Get embedding of user answer
+    const response = await api.getEmbedding(answer);
+    const answerEmbedding = response.embedding;
+
+    // 2. Get ideal embedding from cache
+    const idealEmbedding = question.ideal_answer_embedding;
+
+    if (!idealEmbedding) {
+        console.warn("Missing ideal embedding");
+        return 0.3;
     }
-    
-    return Math.min(1.0, score);
+
+    // 3. Compute similarity
+    const similarity = cosineSimilarity(answerEmbedding, idealEmbedding);
+
+    // 4. Apply penalty for short answers
+    const wordCount = answer.trim().split(/\s+/).length;
+    let score = similarity;
+
+    if (wordCount <= 5) score *= 0.5;
+
+    return Math.min(1.0, Math.max(0, score));
 }
 
 /**
  * Calculate speech score (simplified - based on text quality)
  */
 function calculateSpeechScore(answer) {
-    let score = 0.6; // Base score
-    
-    // Check for filler words
+    const words = answer.trim().split(/\s+/);
+    const wordCount = words.length;
+
+    // ---------------------------
+    // HARD PENALTY
+    // ---------------------------
+    if (wordCount <= 2) return 0.2;
+    if (wordCount <= 5) return 0.4;
+
+    let score = 0.5;
+
     const fillerWords = ['umm', 'uh', 'like', 'you know', 'basically'];
     const answerLower = answer.toLowerCase();
+
     let fillerCount = 0;
-    
     fillerWords.forEach(filler => {
-        const regex = new RegExp(filler, 'gi');
-        const matches = answerLower.match(regex);
+        const matches = answerLower.match(new RegExp(filler, 'gi'));
         if (matches) fillerCount += matches.length;
     });
-    
+
     if (fillerCount === 0) score += 0.2;
     else if (fillerCount <= 2) score += 0.1;
-    
-    // Check sentence structure (has periods)
+
     const sentences = answer.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    if (sentences.length >= 3) score += 0.2;
-    
+    if (sentences.length >= 2) score += 0.2;
+
     return Math.min(1.0, score);
 }
 
@@ -729,6 +736,21 @@ function resetInterview() {
     document.getElementById('interview-session').querySelector('.question-card').style.display = 'block';
     document.getElementById('interview-session').querySelector('.answer-section').style.display = 'block';
     document.getElementById('interview-complete').style.display = 'none';
+}
+
+
+function cosineSimilarity(vec1, vec2) {
+    let dot = 0.0;
+    let normA = 0.0;
+    let normB = 0.0;
+
+    for (let i = 0; i < vec1.length; i++) {
+        dot += vec1[i] * vec2[i];
+        normA += vec1[i] * vec1[i];
+        normB += vec2[i] * vec2[i];
+    }
+
+    return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
 // Initialize speech APIs when page loads

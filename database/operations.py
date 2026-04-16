@@ -251,7 +251,9 @@ class DatabaseManager:
         now = datetime.now().isoformat()
         
         cursor.execute('''
-            INSERT INTO questions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO questions 
+            (question_id, question_text, category, difficulty, topics, job_roles, embedding, ideal_keywords, ideal_answer_embedding, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             question_id,
             question_data['question_text'],
@@ -261,6 +263,7 @@ class DatabaseManager:
             json.dumps(question_data['job_roles']),
             json.dumps(question_data['embedding']),
             json.dumps(question_data.get('ideal_keywords', [])),
+            None,  # 🔥 initially empty
             now,
             now
         ))
@@ -290,7 +293,9 @@ class DatabaseManager:
             question_ids.append(qid)
             
             cursor.execute('''
-                INSERT INTO questions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO questions 
+                (question_id, question_text, category, difficulty, topics, job_roles, embedding, ideal_keywords, ideal_answer_embedding, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 qid,
                 q['question_text'],
@@ -300,6 +305,7 @@ class DatabaseManager:
                 json.dumps(q['job_roles']),
                 json.dumps(q['embedding']),
                 json.dumps(q.get('ideal_keywords', [])),
+                None,  # 🔥 important
                 now,
                 now
             ))
@@ -326,6 +332,10 @@ class DatabaseManager:
             'job_roles': json.loads(row['job_roles']),
             'embedding': json.loads(row['embedding']),
             'ideal_keywords': json.loads(row['ideal_keywords']),
+            
+            # 🔥 ADD THIS LINE
+            'ideal_answer_embedding': json.loads(row['ideal_answer_embedding']) if row['ideal_answer_embedding'] else None,
+            
             'created_at': row['created_at']
         } for row in rows]
     
@@ -394,15 +404,18 @@ class DatabaseManager:
         
         if row:
             return {
-                'question_id': row['question_id'],
-                'question_text': row['question_text'],
-                'category': row['category'],
-                'difficulty': row['difficulty'],
-                'topics': json.loads(row['topics']),
-                'job_roles': json.loads(row['job_roles']),
-                'embedding': json.loads(row['embedding']),
-                'ideal_keywords': json.loads(row['ideal_keywords'])
-            }
+            'question_id': row['question_id'],
+            'question_text': row['question_text'],
+            'category': row['category'],
+            'difficulty': row['difficulty'],
+            'topics': json.loads(row['topics']),
+            'job_roles': json.loads(row['job_roles']),
+            'embedding': json.loads(row['embedding']),
+            'ideal_keywords': json.loads(row['ideal_keywords']),
+            
+            # 🔥 ADD THIS
+            'ideal_answer_embedding': json.loads(row['ideal_answer_embedding']) if row['ideal_answer_embedding'] else None
+        }
         return None
     
     def cache_retrieval_results(self, candidate_id: str,

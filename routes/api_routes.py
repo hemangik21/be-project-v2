@@ -3,6 +3,8 @@ API Routes - Complete REST API
 """
 
 from flask import Blueprint, request, jsonify
+from sentence_transformers import SentenceTransformer
+# Load model once (global)
 from services import (
     ResumeParser,
     ProfileCreator,
@@ -12,6 +14,9 @@ from services import (
 )
 from database import DatabaseManager
 import traceback
+
+# Load model once (global)
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 def create_routes():
     """Create and configure all routes"""
@@ -350,6 +355,17 @@ def create_routes():
         return jsonify({
             'status': 'healthy',
             'service': 'AI Interview System'
+        })
+    
+    @api.route('/get-embedding', methods=['POST'])
+    def get_embedding():
+        data = request.get_json()
+        text = data.get('text', '')
+
+        embedding = model.encode(text, normalize_embeddings=True).tolist()
+
+        return jsonify({
+            "embedding": embedding
         })
     
     return api

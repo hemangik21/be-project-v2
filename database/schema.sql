@@ -6,10 +6,11 @@ CREATE TABLE IF NOT EXISTS questions (
     question_text TEXT NOT NULL,
     category TEXT NOT NULL CHECK(category IN ('technical', 'behavioral', 'situational')),
     difficulty TEXT NOT NULL CHECK(difficulty IN ('easy', 'medium', 'hard')),
-    topics TEXT NOT NULL,  -- JSON array: ["Python", "ML"]
-    job_roles TEXT NOT NULL,  -- JSON array: ["Software Engineer"]
-    embedding TEXT NOT NULL,  -- JSON array: 384 floats
-    ideal_keywords TEXT,  -- JSON array: ["keyword1", "keyword2"]
+    topics TEXT NOT NULL,              -- JSON
+    job_roles TEXT NOT NULL,           -- JSON
+    embedding TEXT NOT NULL,           -- question embedding (keep it)
+    ideal_keywords TEXT,               -- keep (useful fallback)
+    ideal_answer_embedding TEXT,       -- 🔥 NEW (THIS IS KEY)
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
 );
