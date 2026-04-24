@@ -493,7 +493,7 @@ async function submitAnswer() {
     
     try {
         // Simulate scoring (in real app, this would be done by backend)
-        const knowledgeScore = await calculateKnowledgeScore(answerText, question);
+        const knowledgeScore = calculateKnowledgeScore(answerText, question);
         const speechScore = calculateSpeechScore(answerText);
         
         // Record response
@@ -578,36 +578,19 @@ function calculateSpeechScore(answer) {
 
     let score = 0.5;
 
-    const words = answer.trim().split(/\s+/);
-    const wordCount = words.length;
-
-    // ---------------------------
-    // HARD PENALTY
-    // ---------------------------
-    if (wordCount <= 2) return 0.2;
-    if (wordCount <= 5) return 0.4;
-
-    let score = 0.5;
-
     const fillerWords = ['umm', 'uh', 'like', 'you know', 'basically'];
     const answerLower = answer.toLowerCase();
-
 
     let fillerCount = 0;
     fillerWords.forEach(filler => {
         const matches = answerLower.match(new RegExp(filler, 'gi'));
-        const matches = answerLower.match(new RegExp(filler, 'gi'));
         if (matches) fillerCount += matches.length;
     });
-
 
     if (fillerCount === 0) score += 0.2;
     else if (fillerCount <= 2) score += 0.1;
 
-
     const sentences = answer.split(/[.!?]+/).filter(s => s.trim().length > 0);
-    if (sentences.length >= 2) score += 0.2;
-
     if (sentences.length >= 2) score += 0.2;
 
     return Math.min(1.0, score);
@@ -761,21 +744,6 @@ function resetInterview() {
     document.getElementById('interview-session').querySelector('.question-card').style.display = 'block';
     document.getElementById('interview-session').querySelector('.answer-section').style.display = 'block';
     document.getElementById('interview-complete').style.display = 'none';
-}
-
-
-function cosineSimilarity(vec1, vec2) {
-    let dot = 0.0;
-    let normA = 0.0;
-    let normB = 0.0;
-
-    for (let i = 0; i < vec1.length; i++) {
-        dot += vec1[i] * vec2[i];
-        normA += vec1[i] * vec1[i];
-        normB += vec2[i] * vec2[i];
-    }
-
-    return dot / (Math.sqrt(normA) * Math.sqrt(normB));
 }
 
 // Initialize speech APIs when page loads
