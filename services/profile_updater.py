@@ -190,7 +190,8 @@ class ProfileUpdater:
             trend = "insufficient_data"
         
         return {
-            **stats,
-            'trend': trend,
-            'recent_responses': len(history)
-        }
+                **stats,
+                'trend': trend,
+                'recent_responses': len(history),
+                'history': history   # ✅ ADD THIS
+            }

@@ -56,6 +56,23 @@ function navigateTo(pageName) {
     // Update state
     appState.currentPage = pageName;
     saveState();
+
+    if (pageName === 'dashboard') {
+    console.log("Navigated to dashboard");
+
+    const input = document.getElementById('dashboard-candidate-id');
+
+    if (input && input.value.trim()) {
+
+            // 🔥 CRITICAL FIX
+            requestAnimationFrame(() => {
+                loadDashboard();
+            });
+
+        } else {
+            console.warn("No candidate ID entered for dashboard");
+        }
+    }
 }
 
 /**
@@ -118,10 +135,10 @@ function showLoading(show = true) {
  */
 async function checkAPIHealth() {
     try {
-        await api.healthCheck();
-        console.log('✅ API is healthy');
+        const result = await api.healthCheck();
+        console.log('✅ API is healthy', result);
     } catch (error) {
-        console.error('❌ API health check failed:', error);
+        console.error('❌ API health check failed:', error.message, error);
         showToast('Cannot connect to backend. Make sure the server is running.', 'error');
     }
 }

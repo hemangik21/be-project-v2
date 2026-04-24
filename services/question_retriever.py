@@ -53,7 +53,14 @@ class QuestionRetriever:
         if cached:
             print("✅ Using cached results")
             question_ids = cached['question_ids'][:max_questions]
-            return [self.db.get_question_by_id(qid) for qid in question_ids]
+            similarity_scores = cached['similarity_scores'][:max_questions]
+            results = []
+            for qid, score in zip(question_ids, similarity_scores):
+                q = self.db.get_question_by_id(qid)
+                if q:
+                    q['similarity_score'] = score  # 🔥 restore score
+                results.append(q)
+            return results
         
         # Get candidate profile
         profile = self.db.get_candidate_profile(candidate_id)

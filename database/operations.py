@@ -203,10 +203,22 @@ class DatabaseManager:
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT * FROM interview_history 
-            WHERE candidate_id = ? 
-            ORDER BY timestamp DESC 
-            LIMIT ?
+            SELECT 
+                    ih.history_id,
+                    ih.candidate_id,
+                    ih.question_id,
+                    q.question_text,              -- ✅ ADD THIS
+                    ih.answer_text,
+                    ih.knowledge_score,
+                    ih.speech_score,
+                    ih.total_score,
+                    ih.timestamp
+                FROM interview_history ih
+                JOIN questions q 
+                    ON ih.question_id = q.question_id
+                WHERE ih.candidate_id = ?
+                ORDER BY ih.timestamp DESC
+                LIMIT ?
         ''', (candidate_id, limit))
         
         rows = cursor.fetchall()
@@ -216,6 +228,7 @@ class DatabaseManager:
             'history_id': row['history_id'],
             'candidate_id': row['candidate_id'],
             'question_id': row['question_id'],
+            'question_text': row['question_text'],   # ✅ ADD THIS
             'answer_text': row['answer_text'],
             'knowledge_score': row['knowledge_score'],
             'speech_score': row['speech_score'],

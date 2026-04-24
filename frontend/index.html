@@ -106,7 +106,7 @@
                     <!-- Results -->
                     <div id="resume-results" class="results-card" style="display: none;">
                         <h3><i class="fas fa-check-circle"></i> Profile Created Successfully!</h3>
-                        <div id="profile-summary"></div>
+                        <div id="profile-info"></div>
                         <div class="result-actions">
                             <button class="btn btn-primary" onclick="navigateTo('interview')">
                                 <i class="fas fa-play"></i> Start Interview
@@ -317,7 +317,13 @@
                     <h2><i class="fas fa-chart-bar"></i> Performance Dashboard</h2>
                     <p>Track your progress and insights</p>
                 </div>
-
+                <div class="input-group" style="margin-bottom: 1rem;">
+                    <input type="text" id="dashboard-candidate-id" class="form-input"
+                        placeholder="Enter Candidate ID">
+                    <button class="btn btn-primary" onclick="loadDashboard()">
+                        Load Dashboard
+                    </button>
+                </div>
                 <div class="dashboard-section">
                     <!-- Stats Overview -->
                     <div class="stats-overview">
@@ -334,6 +340,7 @@
                         <div class="stat-card">
                             <i class="fas fa-fire"></i>
                             <h3 id="improvement-rate">0%</h3>
+                            <!-- <p id="stat-trend">--</p> -->
                             <p>Improvement Rate</p>
                         </div>
                     </div>

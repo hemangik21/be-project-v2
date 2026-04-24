@@ -184,6 +184,7 @@ def create_routes():
             return jsonify(summary)
         
         except Exception as e:
+            print("ERROR:", str(e))  # 👈 ADD THIS
             return jsonify({'error': str(e)}), 500
     
     # ==================== PERSON C ROUTES ====================

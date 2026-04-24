@@ -7,7 +7,6 @@
  */
 async function loadDashboard() {
     const candidateId = document.getElementById('dashboard-candidate-id').value.trim();
-    
     if (!candidateId) {
         showToast('Please enter a Candidate ID', 'error');
         return;
@@ -24,11 +23,24 @@ async function loadDashboard() {
         ]);
         
         // Display all sections
+        console.log("STEP 1: stats");
         displayStats(summary);
+        console.log("STEP 2: profile");
         displayProfileInfo(candidate.profile, candidate.resume);
-        displayPerformanceHistory(summary);
-        displayRecommendations(recommendations);
-        
+       console.log("STEP 3: history");
+        try {
+            displayPerformanceHistory(summary.history);
+        } catch (e) {
+            console.error("❌ History crashed:", e);
+        }
+
+        console.log("STEP 4: recommendations");
+        try {
+            displayRecommendations(recommendations);
+        } catch (e) {
+            console.error("❌ Recommendations crashed:", e);
+        }
+                
         // Show dashboard content
         document.getElementById('dashboard-content').style.display = 'block';
         
@@ -44,34 +56,51 @@ async function loadDashboard() {
 /**
  * Display statistics overview
  */
+
+function formatTrend(trend) {
+    if (trend === 'improving') return '↑ Improving';
+    if (trend === 'declining') return '↓ Declining';
+    if (trend === 'stable') return '→ Stable';
+    return 'Not enough data';
+}
+
 function displayStats(summary) {
-    document.getElementById('stat-total-questions').textContent = summary.total_questions || 0;
-    document.getElementById('stat-avg-score').textContent = ((summary.avg_total_score || 0) * 100).toFixed(0) + '%';
-    document.getElementById('stat-best-score').textContent = ((summary.best_score || 0) * 100).toFixed(0) + '%';
+    
+    document.getElementById('total-interviews').textContent =
+        summary.total_questions || 0;
+
+    document.getElementById('avg-performance').textContent =
+        ((summary.avg_total_score || 0) * 100).toFixed(0) + '%';
+
+    document.getElementById('improvement-rate').textContent =
+        formatTrend(summary.trend) || 'N/A';
     
     // Display trend
-    const trendElement = document.getElementById('stat-trend');
-    const trend = summary.trend || 'insufficient_data';
+
+
+    // const trendElement = document.getElementById('stat-trend');
+    // const trend = summary.trend || 'insufficient_data';
     
-    if (trend === 'improving') {
-        trendElement.textContent = '↑ Improving';
-        trendElement.style.color = '#10B981';
-    } else if (trend === 'declining') {
-        trendElement.textContent = '↓ Declining';
-        trendElement.style.color = '#EF4444';
-    } else if (trend === 'stable') {
-        trendElement.textContent = '→ Stable';
-        trendElement.style.color = '#F59E0B';
-    } else {
-        trendElement.textContent = '-- N/A';
-        trendElement.style.color = '#6B7280';
-    }
+    // if (trend === 'improving') {
+    //     trendElement.textContent = '↑ Improving';
+    //     trendElement.style.color = '#10B981';
+    // } else if (trend === 'declining') {
+    //     trendElement.textContent = '↓ Declining';
+    //     trendElement.style.color = '#EF4444';
+    // } else if (trend === 'stable') {
+    //     trendElement.textContent = '→ Stable';
+    //     trendElement.style.color = '#F59E0B';
+    // } else {
+    //     trendElement.textContent = '-- N/A';
+    //     trendElement.style.color = '#6B7280';
+    // }
 }
 
 /**
  * Display profile information
  */
 function displayProfileInfo(profile, resume) {
+
     const profileInfoDiv = document.getElementById('profile-info');
     
     const metadata = profile.metadata;
@@ -128,37 +157,26 @@ function displayProfileInfo(profile, resume) {
 /**
  * Display performance history (mock - would come from API)
  */
-function displayPerformanceHistory(summary) {
+function displayPerformanceHistory(history) {
     const historyDiv = document.getElementById('performance-history');
-    
-    if (summary.total_questions === 0) {
+
+    if (!history || history.length === 0) {
         historyDiv.innerHTML = `
             <p style="color: var(--text-secondary); text-align: center; padding: 2rem;">
-                No interview history yet. Start your first interview to see performance data.
+                No interview history yet.
             </p>
         `;
         return;
     }
-    
-    // Generate mock history items based on summary
-    const historyItems = [];
-    for (let i = 0; i < Math.min(summary.recent_responses || 5, 10); i++) {
-        const score = 0.5 + Math.random() * 0.5; // Mock score between 50-100%
-        historyItems.push({
-            question: `Interview Question ${i + 1}`,
-            score: score,
-            date: new Date(Date.now() - i * 86400000).toISOString() // Mock dates
-        });
-    }
-    
-    historyDiv.innerHTML = historyItems.map((item, index) => `
+
+    historyDiv.innerHTML = history.map((item, index) => `
         <div class="history-item">
             <div class="history-header">
-                <span><strong>Question ${index + 1}</strong></span>
-                <span class="history-score">${(item.score * 100).toFixed(0)}%</span>
+                <span><strong>${item.question_text || 'Question ' + (index + 1)}</strong></span>
+                <span class="history-score">${(item.total_score * 100).toFixed(0)}%</span>
             </div>
             <div style="color: var(--text-secondary); font-size: 0.875rem;">
-                ${formatDate(item.date)}
+                ${formatDate(item.timestamp)}
             </div>
         </div>
     `).join('');
