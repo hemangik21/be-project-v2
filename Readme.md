@@ -16,7 +16,13 @@ python -m database.init_db
 python -m database.sample_data  # Optional: add sample data
 ```
 
-### 3. Run Application
+### 3. Load Questions in database
+```bash
+python load_questions.py
+python generate_embeddings.py
+```
+
+### 4. Run Application
 ```bash
 python app.py
 ```
